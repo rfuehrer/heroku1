@@ -24,6 +24,11 @@ RUN adduser -D myuser
 USER myuser
 
 ENV FAH_TEAMID=263581
+ENV FAH_MILESTONE1=5000
+ENV FAH_MILESTONE2=2500
+ENV FAH_MILESTONE3=1000
+ENV FAH_GOAL=150
+ENV FAH_LIMITDAYS=14
 
 # run stat first time (to get data)
 RUN python3 /opt/webapp/folding-stats.py
