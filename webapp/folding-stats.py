@@ -225,7 +225,7 @@ if __name__ == "__main__":
     if not teamid.isdigit():
         # teamid=getconfig(config,"team","0")
         logging.error(
-            "Environment var FAH_TEAM_ID missing or not numeric. Abort!"
+            "Environment var FAH_TEAMID missing or not numeric. Abort!"
         )
         # exits the program
         sys.exit(1)

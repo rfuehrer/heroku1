@@ -23,6 +23,8 @@ RUN chmod -R 777 /opt/webapp
 RUN adduser -D myuser
 USER myuser
 
+ENV FAH_TEAMID=263581
+
 # run stat first time (to get data)
 RUN python3 /opt/webapp/folding-stats.py
 
