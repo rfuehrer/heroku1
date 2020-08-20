@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-170461180-1"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		gtag('config', "UA-170461180-1", { 'anonymize_ip': true });
+	</script>
+
+	<script type="text/javascript" src="team.js"></script>
+	<script type="text/javascript" src="settings.js"></script>
+	<script type="text/javascript" src="language.js"></script>
+
+	<style> /* set the CSS */
+		body {
+			font: 12px Arial;
+			color: white;
+			background:url(img/background.png) fixed no-repeat bottom right #BA1319;
+		}
+		h1 {
+			color: white;
+		}
+		h2 {
+			color: white
+		}
+		a {
+			color: white;
+			text-decoration: underline;
+			text-decoration-color: white;
+		}
+		.graph-svg-background {
+			background-color: white;
+		}
+		path {
+			stroke: gray;
+			stroke-width: 2;
+			fill: none;
+		}
+		.xaxis {
+			fill: none;
+			stroke: grey;
+			stroke-width: 1;
+			shape-rendering: crispEdges;
+			font: 12px sans-serif;
+		}
+		.yaxis {
+			fill: none;
+			stroke: grey;
+			stroke-width: 1;
+			shape-rendering: crispEdges;
+			font: 12px sans-serif;
+		}
+		.line {
+			fill: none;
+			stroke: steelblue;
+			stroke-width: 2px;
+		}
+		.x {
+			stroke: lightgrey;
+			stroke-opacity: 0.7;
+			shape-rendering: crispEdges;
+			font: 12px sans-serif;
+			color: black;
+		}
+		.y {
+			stroke: lightgrey;
+			stroke-opacity: 0.7;
+			shape-rendering: crispEdges;
+			font: 12px sans-serif;
+			color: black;
+		}
+		.zeroline {
+			fill: none;
+			stroke: darkgray;
+			stroke-width: 0.5px;
+			stroke-dasharray: 5 5;
+		}
+		.zerolinetext {
+			fill: darkgray;
+			font: 12px sans-serif;
+		}
+		.goalline {
+			fill: none;
+			stroke: darkred;
+			stroke-width: 1.5px;
+			stroke-dasharray: 5 5;
+		}
+		.goallinetext {
+			fill: darkred;
+			font: 12px sans-serif;
+		}
+		.lastvaluetext {
+			fill: steelblue;
+			font-weight: bold;
+			font: 12px sans-serif;
+		}
+
+		td, th {
+			padding: 1px 4px;
+		}
+		.change_indicator {
+			width: 16px;
+			height: 16px;
+		}
+		.help {
+			width: 16px;
+			height: 16px;
+		}
+		.box {
+			overflow:scroll;
+			height:300px;
+			width:670px;
+			overflow:auto;
+			border: 1px dotted lightgray;
+			padding: 5px;
+			background-color: #FFFFFF;
+			color: #000000;
+			opacity: 0.85;
+		}
+		th {
+			border-bottom: 1px solid #ccc;
+			padding-left:8px;
+			padding-right:8px;
+		}
+		th:not(:last-child){
+			border-right: 1px solid #ccc;
+		}
+		td {
+			text-align:left;
+			padding-left:8px;
+			padding-right:8px;
+		}
+		td:not(:last-child){
+			border-right: 1px solid #ccc;
+		}
+		tr:hover {
+			background-color: #f5f5f5;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Folding@Home - Team <i><a href="#" id="team_stats_link" style="text-decoration: none; color:white;" target=_blank><script>document.write(team.name)</script></a></i> (#<script>document.write(team.id)</script>)</h1>
+
+	<script>document.getElementById('team_stats_link').setAttribute('href', "https://stats.foldingathome.org/team/" + team.id);</script>
+
+		<p>
+			<h2><script>document.write(language.intro["title"])</script></h2>
+			<script>document.write(language.intro["help"])</script>
+		</p>
+		<p>
+		<h2><script>document.write(language.progress["title"])</script> <a id="help_progress" href="#" title="no help avaliable"><img alt="" class="help" src="img/help.png"></a></h2>
+
+		<script>document.getElementById('help_progress').setAttribute('title', language.progress["help"]);</script>
+	</p>
+
+	<div id="graph-box" class="box">
+
+	<div><button id='saveButton'>Export visualization to PNG</button></div>
+
+<script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
+<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+
+<script>
+	var germanFormatters = d3.locale({
+	"decimal": ",",
+	"thousands": ".",
+	"grouping": [3],
+	"currency": ["€", ""],
+	"dateTime": "%a %b %e %X %Y",
+	"date": "%d.%m.%Y",
+	"time": "%H:%M:%S",
+	"periods": ["AM", "PM"],
+	"days": ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+	"shortDays": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+	"months": ["Jannuar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+	"shortMonths": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+	});
+
+	var customTimeFormat = germanFormatters.timeFormat.multi([
+		[".%L", function(d) { return d.getMilliseconds(); }],
+		[":%S", function(d) { return d.getSeconds(); }],
+		["%I:%M", function(d) { return d.getMinutes(); }],
+		["%Hh", function(d) { return d.getHours(); }],
+		["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+		["%b %d", function(d) { return d.getDate() != 1; }],
+		["%B", function(d) { return d.getMonth(); }],
+		["%Y", function() { return true; }]
+	]);
+
+	function percentage(partialValue, totalValue) {
+		return partialValue*totalValue/100;
+	}
+
+	// Set the dimensions of the canvas / graph
+	var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+		width = 600 - margin.left - margin.right,
+		height = 270 - margin.top - margin.bottom;
+
+	// Parse the date / time
+	var	parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+
+	// Set the ranges
+	var	x = d3.time.scale().range([0, width-100]);
+//	var	y = d3.scale.linear().range([height, 0]);
+	var	y = d3.scale.linear().range([0,height]);
+
+	// Define the axes
+	var	xAxis = d3.svg.axis().scale(x)
+		.orient("bottom").ticks(10)
+		.tickFormat(customTimeFormat);
+
+	var	yAxis = d3.svg.axis().scale(y)
+		.orient("left").ticks(10);
+
+	// Define the line
+	var	valueline = d3.svg.line()
+		.x(function(d) { return x(d.datetime); })
+		.y(function(d) { return y(d.rank); });
+
+	// Adds the svg canvas
+	var	svg = d3.select("#graph-box")
+		.append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+			.attr("class", "graph-svg-background")
+		.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	// Get the data
+	d3.csv("data/folding-stats.csv", function(error, data) {
+		data.forEach(function(d) {
+			// only get rows from the right team
+			if ( d.team == team.id ) {
+				d.datetime = parseDate(d.datetime);
+				d.rank = +(d.rank);
+				last_value = d.rank
+			}
+		});
+
+		// Limit data to the last x days
+		var cutoffDate = new Date();
+		cutoffDate.setDate(cutoffDate.getDate() - settings.limitdays);
+		data = data.filter(function(d) {
+			return d.datetime > cutoffDate;
+		})
+
+		// Scale the range of the data
+		rank_max = d3.max(data, function(d) { return d.rank; })
+		// add 10% of value to y axis to add more space to starting point
+		rank_max_10p =  percentage(10, rank_max);
+		x.domain(d3.extent(data, function(d) { return d.datetime; }));
+		y.domain([0, rank_max + rank_max_10p]);
+
+		// Add the valueline path.
+		svg.append("path")
+			.attr("class", "line")
+			.attr("d", valueline(data));
+
+		// Add the X Axis
+		svg.append("g")
+			.attr("class", "xaxis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis);
+
+		// Add the Y Axis
+		svg.append("g")
+			.attr("class", "yaxis")
+			.call(yAxis);
+
+
+//		visible_min = d3.min(data, function(d) { return d.rank; })
+		visible_min = 0
+		visible_max = d3.max(data, function(d) { return d.rank; })
+		// Team & day filer info
+		svg.append('text')
+			.attr('x', width/2+60)
+			.attr('y', -20)
+			.attr('dy', '1em')
+			.attr('text-anchor', 'end')
+			.text("Team: " + team.id + " (last " + settings.limitdays+ " days)")
+			.attr('class', 'zerolinetext');
+		// milestone #1
+		if (visible_min < settings.milestone1 && settings.milestone1 < visible_max)
+		{
+		svg.append('line')
+			.attr('x1', 0)
+			.attr('y1', y(settings.milestone1))
+			.attr('x2', width)
+			.attr('y2', y(settings.milestone1))
+			.attr('class', 'zeroline');
+		svg.append('text')
+			.attr('x', width)
+			.attr('y', y(settings.milestone1))
+			.attr('dy', '1em')
+			.attr('text-anchor', 'end')
+			.text(settings.milestone1)
+			.attr('class', 'zerolinetext');
+		}
+		// milestone #2
+		if (visible_min < settings.milestone2 && settings.milestone2 < visible_max)
+		{
+			svg.append('line')
+				.attr('x1', 0)
+				.attr('y1', y(settings.milestone2))
+				.attr('x2', width)
+				.attr('y2', y(settings.milestone2))
+				.attr('class', 'zeroline');
+			svg.append('text')
+				.attr('x', width)
+				.attr('y', y(settings.milestone2))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(settings.milestone2)
+				.attr('class', 'zerolinetext');
+		}
+		// milestone #3
+		if (visible_min < settings.milestone3 && settings.milestone3 < visible_max)
+		{
+			svg.append('line')
+				.attr('x1', 0)
+				.attr('y1', y(settings.milestone3))
+				.attr('x2', width)
+				.attr('y2', y(settings.milestone3))
+				.attr('class', 'zeroline');
+			svg.append('text')
+				.attr('x', width)
+				.attr('y', y(settings.milestone3))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(settings.milestone3)
+				.attr('class', 'zerolinetext');
+		}
+		// goal
+		if (visible_min < settings.goal && settings.goal < visible_max)
+		{
+			svg.append('line')
+				.attr('x1', 0)
+				.attr('y1', y(settings.goal))
+				.attr('x2', width)
+				.attr('y2', y(settings.goal))
+				.attr('class', 'goalline');
+			svg.append('text')
+				.attr('x', width)
+				.attr('y', y(settings.goal))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(settings.goal)
+				.attr('class', 'goallinetext');
+		}
+		// last value
+		svg.append('text')
+				.attr('x', width-80)
+				.attr('y', y(d3.min(data, function(d) { return d.rank; })))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(last_value)
+				.attr('class', 'lastvaluetext');
+		});
+
+
+		// Set-up the export button
+d3.select('#saveButton').on('click', function(){
+//	var svgString = getSVGString(svg.node());
+	var svgString = getSVGString(d3.select('svg').node());
+
+	svgString2Image( svgString, 2*width, 2*height, 'png', save ); // passes Blob and filesize String to the callback
+
+	function save( dataBlob, filesize ){
+		saveAs( dataBlob, 'rank.png' ); // FileSaver.js function
+	}
+});
+
+// Below are the functions that handle actual exporting:
+// getSVGString ( svgNode ) and svgString2Image( svgString, width, height, format, callback )
+function getSVGString( svgNode ) {
+	svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+	var cssStyleText = getCSSStyles( svgNode );
+	appendCSS( cssStyleText, svgNode );
+
+	var serializer = new XMLSerializer();
+	var svgString = serializer.serializeToString(svgNode);
+	svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
+	svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
+
+	return svgString;
+
+	function getCSSStyles( parentElement ) {
+		var selectorTextArr = [];
+
+		// Add Parent element Id and Classes to the list
+		selectorTextArr.push( '#'+parentElement.id );
+		for (var c = 0; c < parentElement.classList.length; c++)
+				if ( !contains('.'+parentElement.classList[c], selectorTextArr) )
+					selectorTextArr.push( '.'+parentElement.classList[c] );
+
+		// Add Children element Ids and Classes to the list
+		var nodes = parentElement.getElementsByTagName("*");
+		for (var i = 0; i < nodes.length; i++) {
+			var id = nodes[i].id;
+			if ( !contains('#'+id, selectorTextArr) )
+				selectorTextArr.push( '#'+id );
+
+			var classes = nodes[i].classList;
+			for (var c = 0; c < classes.length; c++)
+				if ( !contains('.'+classes[c], selectorTextArr) )
+					selectorTextArr.push( '.'+classes[c] );
+		}
+
+		// Extract CSS Rules
+		var extractedCSSText = "";
+		for (var i = 0; i < document.styleSheets.length; i++) {
+			var s = document.styleSheets[i];
+
+			try {
+			    if(!s.cssRules) continue;
+			} catch( e ) {
+		    		if(e.name !== 'SecurityError') throw e; // for Firefox
+		    		continue;
+		    	}
+
+			var cssRules = s.cssRules;
+			for (var r = 0; r < cssRules.length; r++) {
+				if ( contains( cssRules[r].selectorText, selectorTextArr ) )
+					extractedCSSText += cssRules[r].cssText;
+			}
+		}
+
+		return extractedCSSText;
+
+		function contains(str,arr) {
+			return arr.indexOf( str ) === -1 ? false : true;
+		}
+
+	}
+
+	function appendCSS( cssText, element ) {
+		var styleElement = document.createElement("style");
+		styleElement.setAttribute("type","text/css");
+		styleElement.innerHTML = cssText;
+		var refNode = element.hasChildNodes() ? element.children[0] : null;
+		element.insertBefore( styleElement, refNode );
+	}
+}
+
+
+function svgString2Image( svgString, width, height, format, callback ) {
+	var format = format ? format : 'png';
+
+	var imgsrc = 'data:image/svg+xml;base64,'+ btoa( unescape( encodeURIComponent( svgString ) ) ); // Convert SVG string to data URL
+
+	var canvas = document.createElement("canvas");
+	var context = canvas.getContext("2d");
+
+	canvas.width = width;
+	canvas.height = height;
+
+	var image = new Image();
+	image.onload = function() {
+		context.clearRect ( 0, 0, width, height );
+		context.drawImage(image, 0, 0, width, height);
+
+		canvas.toBlob( function(blob) {
+			var filesize = Math.round( blob.length/1024 ) + ' KB';
+			if ( callback ) callback( blob, filesize );
+		});
+	};
+
+	image.src = imgsrc;
+}
+
+</script>
+</div>
+
+<div id="history">
+	<h2><script>document.write(language.history["title"])</script> <a href="#" id="help_history" title="no help available"><img alt="" class="help" src="img/help.png"></a></h2>
+	<script>document.getElementById('help_history').setAttribute('title', language.history["help"]);</script>
+	<div id="history-box" class="box">
+	<script>
+		var tabulate = function (data,columns) {
+		var table = d3.select('#history-box').append('table')
+		var thead = table.append('thead')
+		var tbody = table.append('tbody')
+
+		thead.append('tr')
+			.selectAll('th')
+			.data(columns)
+			.enter()
+			.append('th')
+			.text(function (d) { return d })
+
+		var rows = tbody.selectAll('tr')
+			.data(data)
+			.enter()
+			.append('tr')
+
+		var cells = rows.selectAll('td')
+			.data(function(row) {
+				return columns.map(function (column) {
+					if ( column == "change" ) {
+						if ( row[column] < 0 ) {
+							row[column] = "<img src=img/down.png class=change_indicator> (" + row[column] + ")"
+						}
+						if ( row[column] > 0 ) {
+							row[column] = "<img src=img/up.png class=change_indicator> (" + row[column] + ")"
+						}
+						if ( row[column] == 0 ) {
+							row[column] = "<img src=img/equal.png class=change_indicator> (" + row[column] + ")"
+						}
+					}
+					return { column: column, value: row[column] }
+				})
+			})
+			.enter()
+		.append('td')
+			.html(function (d) { return d.value })
+
+		return table;
+	}
+
+	d3.csv('data/folding-stats.csv',function (data) {
+		var columns = ['datetime','uid_datetime', 'team','rank', 'change']
+		tabulate(data,columns)
+	})
+	</script>
+	</div>
+</div>
+
+
+<div id="supporter">
+	<h2><script>document.write(language.supporter["title"])</script> <a href="#" id="help_supporter" title="no help available"><img alt="" class="help" src="img/help.png"></a></h2>
+
+	<script>document.getElementById('help_supporter').setAttribute('title', language.supporter["help"]);</script>
+
+	<div id="supporter-box" class="box">
+
+
+		<script>
+			var tabulate2 = function (data,columns) {
+				var table = d3.select('#supporter-box').append('table')
+				var thead = table.append('thead')
+				var tbody = table.append('tbody')
+
+				thead.append('tr')
+					.selectAll('th')
+					.data(columns)
+					.enter()
+					.append('th')
+					.text(function (d) { return d })
+
+				var rows = tbody.selectAll('tr')
+					.data(data)
+					.enter()
+					.append('tr')
+
+				var cells = rows.selectAll('td')
+					.data(function(row) {
+						return columns.map(function (column) {
+							return { column: column, value: row[column] }
+						})
+					})
+					.enter()
+				.append('td')
+					.html(function (d) { return d.value })
+				return table;
+			}
+
+		d3.csv('data/supporter.csv',function (data) {
+			var columns = ['uid_datetime', 'supporter']
+			tabulate2(data,columns)
+		})
+		</script>
+
+	</div>
+</div>
+
+</body>
+</html>
