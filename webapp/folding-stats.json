@@ -1,0 +1,8 @@
+{
+    "baseurl":"https://stats.foldingathome.org/api/team/",
+    "database":{
+        "sqlite": "data/folding-stats.db",
+        "csv": "data/folding-stats.csv",
+        "supporter":"data/supporter.csv"
+    }
+}
