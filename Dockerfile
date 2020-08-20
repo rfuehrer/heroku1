@@ -14,6 +14,7 @@ RUN mkdir /opt/webapp//logs
 RUN mkdir /opt/webapp//data
 ADD ./webapp /opt/webapp/
 WORKDIR /opt/webapp
+RUN chmod -R 777 /opt/webapp
 
 # Expose is NOT supported by Heroku
 # EXPOSE 5000 
