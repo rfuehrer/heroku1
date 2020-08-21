@@ -11,7 +11,8 @@ sched = BlockingScheduler()
 def timed_job():
     print('This job is run every one minutes.')
 #    os.spawnl(os.P_NOWAIT, '/opt/webapp/folding-stats.py')
-    pid = subprocess.Popen(["python3", "/opt/webapp/folding-stats.py"], creationflags=subprocess.DETACHED_PROCESS)
+    cmd = "python3 /opt/webapp/folding-stats.py"
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
 @sched.scheduled_job('cron', day_of_week='mon-fri', hour=17)
 def scheduled_job():
