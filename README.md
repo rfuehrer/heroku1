@@ -27,6 +27,26 @@ You are welcome to test this repository yourself. Feel free to use the button be
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
+## How do I work
+
+### Requirement
+
+- local docker installation
+- local git CLI
+- local heroku CLI
+- (optional) Sourcetree or similar tool for easy administration of the repository
+
+### Rough command sequence (including initialization)
+
+1. clone or create repository
+2. `heroku container:login`
+3. `heroku create`
+4. modify repository
+5. `heroku container:push web`
+6. `heroku container:release web`
+7. `heroku open` and `heroku logs --tail`
+8. reperat 4 to 8
+
 ## Status achieved (will be updated)
 
 - [OK] Integrate repository or components  
@@ -39,4 +59,3 @@ You are welcome to test this repository yourself. Feel free to use the button be
 ## License
 
 MIT, do whatever you want with it ;)
-
