@@ -2,3 +2,4 @@ gunicorn
 Flask
 Jinja2
 Werkzeug
+APScheduler==3.0.0
