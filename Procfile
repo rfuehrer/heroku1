@@ -1,1 +1,1 @@
-clock: python /opt/webapp/clock.py
+clock: python3 clock.py
